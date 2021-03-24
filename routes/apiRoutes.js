@@ -1,43 +1,45 @@
 const fs = require('fs');
 const data = fs.readFileSync('./db/db.json');
-const notesData = JSON.parse(data);
+const notesInfo = JSON.parse(data);
+const router = express.Router();
+const { v4: uuidv4 } = require('uuid');
 
-module.exports = (app) => {
-  app.get('/api/notes', (req, res) => {
-      const data = fs.readFileSync
-    res.json(notesData);
+
+module.exports = (router) => {
+  router.get('/api/notes', (req, res) => {
+      const notesInfo = JSON.parse(fs.readFileSync('./db/db.json'));
+      res.json(notesInfo);
   });
   
   // function to write to JSON file anytime notes are updated, add, removed from list
   function writeToJSONfile(){
-    const noteChanged = JSON.stringify(notesData, null, 2);
+    const noteChanged = JSON.stringify(notesInfo, null, 2);
     fs.writeFile('./db/db.json', noteChanged, finished);
     function finished(err){
       console.log('JSON file updated!');
     }
   };
   
-  app.post('/api/notes', (req, res) => {
-    const newNotes = req.body;
-    notesData.push(req.body);
-    writeToJSONfile();
-    res.json(newNotes);
+  router.post('/api/notes', (req, res) => {
+    const notesInfo = JSON.parse(fs.readFileSync('./db/db.json'));
+    const noteID = Object.assign(req.body, { id: `${uuidv4()}` }); 
+    notesInfo.push(noteID);
+    const stringNote = JSON.stringify(notesInfo);
+    fs.writeFileSync('./db/db.json', stringNote);
+    res.json(notesInfo);
   });
 
-  // API call for deleting a note from the list or array
-  app.delete('/api/notes/:id', (req, res) => {
-    const deleteID = req.params.id;
-    for (let i = 0; i < notesData.length; i++) {
-      if (deleteID === notesData[i].id) {
-        notesData.splice(i, 1);
-        writeToJSONfile();
+  router.delete('/api/notes/:id', (req, res) => {
+    const notesInfo = JSON.parse(fs.readFileSync('./db/db.json'));
+    const noteID = req.params.id;
+    for (let i = 0; i < notesInfo.length; i++) {
+      if (notesInfo[i].id === noteID) {
+        notesInfo.splice(i, 1);
+        const newNotes = JSON.stringify(notesInfo);
+        fs.writeFileSync('./db/db.json', newNotes);
+        return res.json(notesInfo);
       }
     }
-    res.end();
-  });
-
-  app.post('/api/clear', (req, res) => {
-    // server code for clearing out all the notes when clicked on in future release
   });
 }
 
