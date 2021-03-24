@@ -1,9 +1,10 @@
 const fs = require('fs');
 const data = fs.readFileSync('./db/db.json');
-let notesData = JSON.parse(data);
+const notesData = JSON.parse(data);
 
 module.exports = (app) => {
   app.get('/api/notes', (req, res) => {
+      const data = fs.readFileSync
     res.json(notesData);
   });
   
@@ -39,3 +40,4 @@ module.exports = (app) => {
     // server code for clearing out all the notes when clicked on in future release
   });
 }
+
